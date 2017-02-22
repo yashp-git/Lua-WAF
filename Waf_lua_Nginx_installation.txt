@@ -1,0 +1,38 @@
+###NGINX Server Lua WAF installation Guide
+
+sudo apt-get update
+sudo apt-get install nginx
+
+sudo service nginx reload
+sudo service nginx stop
+sudo service nginx start
+sudo service nginx restart
+
+ip addr show eth0 | grep inet | awk '{ print $2; }' | sed 's/\/.*$//'
+
+sudo apt-get install nginx-naxsi
+
+vim /etc/sites-enabled/defualt.conf
+server {
+     proxy_set_header  Proxy-Connection "demo.testfire.net";
+     listen            *:80;
+     access_log        /tmp/nginx_access.log;
+     error_log         /tmp/nginx_error.log debug;   
+     location / {
+          include           /etc/nginx/naxsi.rules;
+          include           /etc/nginx/demo.rules;
+          proxy_pass        http://demo.testfire.net/;
+          proxy_set_header  Host demo.testfire.net;
+     }
+     location /RequestDenied {
+         return 418;
+     }
+ }
+
+
+MainRule "str:\"" "msg:double quote" "mz:BODY|URL|ARGS|$HEADERS_VAR:Cookie" "s:$SQL:8,$XSS:8" id:1001;
+MainRule "str:/manager/html/upload" "msg:DN SCAN Tomcat" "mz:URL" "s:$UWA:8" id:42000217;
+MainRule "rx:type( *)=( *)[\"|']symbol[\"|']" "msg:DN APP_SERVER Possible RAILS Exploit using type=symbol" "mz:BODY" "s:$ATTACK:8" id:42000233;
+MainRule "str:basic ywrtaw46ywrtaw4=" "msg:APP_SERVER Tomcat admin-admin credentials" "mz:$URL/manager|$HEADERS_VAR:Authorization" "s:$ATTACK:8" id:42000216;
+MainRule "str:http://" "msg:http:// scheme" "mz:ARGS|BODY|$HEADERS_VAR:Cookie" "s:$RFI:8" id:1100;
+MainRule "str:/*" "msg:mysql comment (/*)" "mz:BODY|URL|ARGS|$HEADERS_VAR:Cookie" "s:$SQL:8" id:1003;
